@@ -65,6 +65,11 @@ class LdapAuthorizer(object):
         if perm not in self.READUPLOAD or username not in self.privileged_users:
             return False
 
+        # don't allow "confusing" zip names
+        for name in (UPLOAD, CURRENT, ARCHIVE):
+            if path.endswith(os.sep + name + '.zip'):
+                return False
+
         # can only upload zip files
         if os.path.splitext(path)[1].lower() != '.zip':
             return False
