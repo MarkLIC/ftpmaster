@@ -7,6 +7,7 @@ except ImportError:
     exit(1)
 
 import os
+import warnings
 import zipfile
 from pyftpdlib import ftpserver
 from datetime import datetime
@@ -106,8 +107,7 @@ class UnzippingHandler(ftpserver.FTPHandler):
                 archive_path = os.path.join(BASE_DIR, ARCHIVE, main_name, timestamp)
                 os.mkdir(archive_path)
 
-                # TODO: Verify warning as explained in extractall docs
-                z.extractall(archive_path)
+                self._safe_extract_all(z, archive_path)
 
                 # delete existing current directory
                 current_path = os.path.join(BASE_DIR, CURRENT, main_name)
@@ -115,10 +115,20 @@ class UnzippingHandler(ftpserver.FTPHandler):
                     rmtree(current_path)
                 os.mkdir(current_path)
 
-                # TODO: Verify warning as explained in extractall docs
-                z.extractall(current_path)
+                self._safe_extract_all(z, current_path)
 
         os.remove(file)
+
+    def _safe_extract_all(self, zipfile, target_dir):
+        """Safer version of ZipFile.extractall -- does not allow absolute or upwards-relative paths"""
+        for zipinfo in zipfile.infolist():
+            # skip absolute or upwards-relative files
+            if zipinfo.filename.startswith(('/', '..')):
+                warnings.warn('Skipping potentially unsafe file: ' + zipinfo.filename, RuntimeWarning)
+                continue
+
+            # target_dir is base directory; extract will create subpaths as necessary
+            zipfile.extract(zipinfo, target_dir)
 
 def make_default_dirs():
     for subfolder in (ARCHIVE, CURRENT, UPLOAD):
