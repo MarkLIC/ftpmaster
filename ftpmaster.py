@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
 try:
-    from ftpmastersettings import BASE_DIR
+    from ftpmastersettings import BASE_DIR, LDAP_SERVER, make_ldap_string
 except ImportError:
-    print('Could not load settings from ftpmastersettings - make sure you have created it as instructed in the README')
+    print('Could not load required data from ftpmastersettings - make sure you have created it as instructed in the README')
     exit(1)
 
+import ldap
 import os
 import warnings
 import zipfile
@@ -27,16 +28,25 @@ class LdapAuthorizer(object):
     def __init__(self):
         self.privileged_users = set()
 
-        # TODO: only add after validate_authentication
-        self.privileged_users.add('test')
-
     def validate_authentication(self, username, password):
         """Drop-in for DummyAuthorizer: return True/False of valid login"""
         if _is_anonymous(username):
             return True
 
-        # TODO: validate against actual LDAP
-        return username == 'test' and password == 'test'
+        conn = None
+        try:
+            try:
+                conn = ldap.initialize(LDAP_SERVER)
+                conn.set_option(ldap.OPT_REFERRALS, 0)
+                result = conn.simple_bind_s(make_ldap_string(username), password)
+            except ldap.LDAPError, e:
+                return False
+        finally:
+            if conn is not None:
+                conn.unbind()
+
+        self.privileged_users.add(username)
+        return True
 
     def impersonate_user(self, username, password):
         # This would involve actual OS permissions, so we don't care
@@ -103,7 +113,7 @@ class UnzippingHandler(ftpserver.FTPHandler):
             with zipfile.ZipFile(file, 'r') as z:
                 # extract to archive dir first, so as to not overwrite anything
                 # TODO: append user id to timestamp
-                timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+                timestamp = datetime.now().strftime("%Y-%m-%d-%H%M%S")
                 archive_path = os.path.join(BASE_DIR, ARCHIVE, main_name, timestamp)
                 os.mkdir(archive_path)
 
