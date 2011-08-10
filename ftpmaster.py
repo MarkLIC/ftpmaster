@@ -50,13 +50,27 @@ class LdapAuthorizer(object):
         if perm in self.READONLY:
             return True
 
-        return perm in self.READUPLOAD and username in self.privileged_users
+        # only privileged users can upload
+        if perm not in self.READUPLOAD or username not in self.privileged_users:
+            return False
+
+        # can only upload zip files
+        if os.path.splitext(path)[1].lower() != '.zip':
+            return False
+
+        # file must be going into uploads directory
+        if os.path.relpath(path, os.path.join(BASE_DIR, UPLOAD))[0] == '.':
+            # don't allow file names that begin with '.', and
+            # definitely don't allow paths that aren't below BASE_DIR
+            return False
+
+        return True
 
     def get_perms(self, username):
-        if _is_anonymous(username):
-            return self.READONLY
+        if username in self.privileged_users:
+            return self.READUPLOAD
 
-        return self.READUPLOAD
+        return self.READONLY
 
     def get_home_dir(self, username):
         """ All users have the same home directory"""
