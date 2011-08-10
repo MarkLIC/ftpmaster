@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 try:
-    from ftpmastersettings import BASE_DIR, LDAP_SERVER, make_ldap_string, UPLOADERS
+    from ftpmastersettings import BASE_DIR, LDAP_SERVER, make_ldap_string, UPLOADERS, \
+      LISTEN_IP, LISTEN_PORT
 except ImportError:
     print('Could not load required data from ftpmastersettings - make sure you have created it as instructed in the README')
     exit(1)
@@ -154,7 +155,7 @@ def main():
     handler = UnzippingHandler
     handler.authorizer = LdapAuthorizer()
 
-    address = ('127.0.0.1', 21)
+    address = (LISTEN_IP, LISTEN_PORT)
     server = ftpserver.FTPServer(address, handler)
 
     server.max_cons = 256

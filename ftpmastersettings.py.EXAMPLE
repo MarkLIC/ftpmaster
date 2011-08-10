@@ -16,3 +16,10 @@ def make_ldap_string(username):
 
 # Only usernames in the UPLOADERS iterable will be granted upload privileges.
 UPLOADERS = ('privuser1', 'privuser2')
+
+# IP on which to listen.  127.0.0.1 is local machine only, but to serve
+# to the public, use 0.0.0.0
+LISTEN_IP = '127.0.0.1'
+
+# Port on which to listen.  The default FTP port is 21.
+LISTEN_PORT = 21
