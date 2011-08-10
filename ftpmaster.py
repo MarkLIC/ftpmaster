@@ -117,8 +117,7 @@ class UnzippingHandler(ftpserver.FTPHandler):
 
             with zipfile.ZipFile(file, 'r') as z:
                 # extract to archive dir first, so as to not overwrite anything
-                # TODO: append user id to timestamp
-                timestamp = datetime.now().strftime("%Y-%m-%d-%H%M%S")
+                timestamp = datetime.now().strftime("%Y-%m-%d-%H%M%S+" + self.username)
                 archive_path = os.path.join(BASE_DIR, ARCHIVE, main_name, timestamp)
                 os.mkdir(archive_path)
 
