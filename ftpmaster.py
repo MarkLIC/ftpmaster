@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 try:
-    from ftpmastersettings import BASE_DIR, LDAP_SERVER, make_ldap_string
+    from ftpmastersettings import BASE_DIR, LDAP_SERVER, make_ldap_string, UPLOADERS
 except ImportError:
     print('Could not load required data from ftpmastersettings - make sure you have created it as instructed in the README')
     exit(1)
@@ -25,9 +25,6 @@ class LdapAuthorizer(object):
     READONLY = 'elr'
     READUPLOAD = 'elrw'
 
-    def __init__(self):
-        self.privileged_users = set()
-
     def validate_authentication(self, username, password):
         """Drop-in for DummyAuthorizer: return True/False of valid login"""
         if _is_anonymous(username):
@@ -45,7 +42,6 @@ class LdapAuthorizer(object):
             if conn is not None:
                 conn.unbind()
 
-        self.privileged_users.add(username)
         return True
 
     def impersonate_user(self, username, password):
@@ -62,7 +58,7 @@ class LdapAuthorizer(object):
             return True
 
         # only privileged users can upload
-        if perm not in self.READUPLOAD or username not in self.privileged_users:
+        if perm not in self.READUPLOAD or username not in UPLOADERS:
             return False
 
         # don't allow "confusing" zip names
@@ -83,7 +79,7 @@ class LdapAuthorizer(object):
         return True
 
     def get_perms(self, username):
-        if username in self.privileged_users:
+        if username in UPLOADERS:
             return self.READUPLOAD
 
         return self.READONLY
@@ -96,8 +92,10 @@ class LdapAuthorizer(object):
         if _is_anonymous(username):
             return "Welcome anonymous user"
 
-        # TODO: give a better message, based on username?
-        return "Welcome privileged user"
+        if username in UPLOADERS:
+            return "Welcome " + username + "!  You have upload privileges."
+
+        return "Welcome " + username
 
     def get_msg_quit(self, username):
         return "Goodbye"
