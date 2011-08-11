@@ -1,0 +1,44 @@
+ftpmaster
+=========
+
+ftpmaster is a very simple FTP-based content management system (CMS).
+
+In a nutshell, it allows privileged users to upload zip files containing
+content that others need to view in a read-only fashion.  It stores old version
+of the content for historical context.
+
+ftpmaster is available under the MIT license (see LICENSE).
+
+Configuration
+-------------
+
+ftpmaster was written against Python 2.7.  It may work on Python 2.6 but am
+fairly sure I used a few features that were new in Python 2.7.
+
+First, copy ftpmastersettings.py.EXAMPLE to ftpmastersettings.py and adjust the
+settings according to your setup.
+
+Next, make sure you have all the dependencies (python-ldap and ftpdlib)
+installed.
+
+Finally, run the ftpmaster.py file.  It will log everything to stderr in
+addition to the log directory you specified in the settings file.
+
+Usage
+-----
+
+Anyone can log in as anonymous (password ignored), or anyone can log in using
+their LDAP CN (common name) and password.  Only users listed in the UPLOADERS
+iterable will have upload privileges. (As a side note, ftpdlib is quite
+extensible and you can easily use a different authentication method if your
+organization doesn't use LDAP.)
+
+To upload new content (as a privileged user), make a zip file and upload it to
+the uploads folder.  After the upload, ftpmaster will automatically extract the
+contents of the zip file to /current/yourzipname and
+/archive/yourzipname/timestamp+username.  In this way, the /current folder
+always has the most recently uploaded data.
+
+Then, you can use a link to ftp://yourhost/current/yourzipname so that
+non-technical users will always have simple and direct access to the most
+recent files but they can also access old versions if need be.
