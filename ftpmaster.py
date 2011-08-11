@@ -189,7 +189,7 @@ _line_log.addHandler(logging.handlers.TimedRotatingFileHandler(os.path.join(LOG_
 
 _error_log = logging.getLogger('ftpmaster_error')
 _error_log.setLevel(logging.WARNING)
-_line_log.addHandler(logging.handlers.TimedRotatingFileHandler(os.path.join(LOG_DIR, 'ftp_error.log'), when='d', interval=7, backupCount=52))
+_error_log.addHandler(logging.handlers.TimedRotatingFileHandler(os.path.join(LOG_DIR, 'ftp_error.log'), when='d', interval=7, backupCount=52))
 
 def log_normal(msg):
     _normal_log.info(msg)
