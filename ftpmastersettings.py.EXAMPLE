@@ -5,6 +5,10 @@
 # populate it with the "special" folders.
 BASE_DIR = r'C:\server'
 
+# LOG_DIR is the directory where the access and error logs will be saved.
+# The directory must exist, but can be empty.
+LOG_DIR = r'C:\log'
+
 # LDAP_SERVER tells the server what server to use for authentication.
 # Leave the ldap:// on the front, or change it to ldaps:// (untested)
 LDAP_SERVER = 'ldap://192.168.0.201'

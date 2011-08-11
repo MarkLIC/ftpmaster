@@ -2,12 +2,14 @@
 
 try:
     from ftpmastersettings import BASE_DIR, LDAP_SERVER, make_ldap_string, UPLOADERS, \
-      LISTEN_IP, LISTEN_PORT
+      LISTEN_IP, LISTEN_PORT, LOG_DIR
 except ImportError:
     print('Could not load required data from ftpmastersettings - make sure you have created it as instructed in the README')
     exit(1)
 
 import ldap
+import logging
+import logging.handlers
 import os
 import warnings
 import zipfile
@@ -149,7 +151,35 @@ def make_default_dirs():
         if not os.path.exists(subfolder_path):
             os.mkdir(subfolder_path)
 
+# Default handler goes to stderr.  File handlers added after this.
+logging.basicConfig(format='%(asctime)s %(message)s')
+
+_normal_log = logging.getLogger('ftpmaster_normal')
+_normal_log.setLevel(logging.DEBUG)
+_normal_log.addHandler(logging.handlers.TimedRotatingFileHandler(os.path.join(LOG_DIR, 'ftp_normal.log'), when='d', backupCount=5))
+
+_line_log = logging.getLogger('ftpmaster_line')
+_line_log.setLevel(logging.DEBUG)
+_line_log.addHandler(logging.handlers.TimedRotatingFileHandler(os.path.join(LOG_DIR, 'ftp_line.log'), when='h', interval=6, backupCount=12))
+
+_error_log = logging.getLogger('ftpmaster_error')
+_error_log.setLevel(logging.WARNING)
+_line_log.addHandler(logging.handlers.TimedRotatingFileHandler(os.path.join(LOG_DIR, 'ftp_error.log'), when='d', interval=7, backupCount=52))
+
+def log_normal(msg):
+    _normal_log.info(msg)
+
+def log_line(msg):
+    _line_log.info(msg)
+
+def log_error(msg):
+    _error_log.error(msg)
+
 def main():
+    ftpserver.log = log_normal
+    ftpserver.logline = log_line
+    ftpserver.logerror = log_error
+
     make_default_dirs()
 
     handler = UnzippingHandler
