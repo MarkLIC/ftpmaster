@@ -176,20 +176,28 @@ def make_default_dirs():
         if not os.path.exists(subfolder_path):
             os.mkdir(subfolder_path)
 
-# Default handler goes to stderr.  File handlers added after this.
-logging.basicConfig(format='%(asctime)s %(message)s')
+# log to stderr and files
+_format = '%(asctime)s %(message)s'
+_formatter = logging.Formatter(_format)
+logging.basicConfig(format=_format)
 
 _normal_log = logging.getLogger('ftpmaster_normal')
 _normal_log.setLevel(logging.DEBUG)
-_normal_log.addHandler(logging.handlers.TimedRotatingFileHandler(os.path.join(LOG_DIR, 'ftp_normal.log'), when='d', backupCount=5))
+_normal_handler = logging.handlers.TimedRotatingFileHandler(os.path.join(LOG_DIR, 'ftp_normal.log'), when='d', backupCount=5)
+_normal_handler.setFormatter(_formatter)
+_normal_log.addHandler(_normal_handler)
 
 _line_log = logging.getLogger('ftpmaster_line')
 _line_log.setLevel(logging.DEBUG)
-_line_log.addHandler(logging.handlers.TimedRotatingFileHandler(os.path.join(LOG_DIR, 'ftp_line.log'), when='h', interval=6, backupCount=12))
+_line_handler = logging.handlers.TimedRotatingFileHandler(os.path.join(LOG_DIR, 'ftp_line.log'), when='h', interval=6, backupCount=12)
+_line_handler.setFormatter(_formatter)
+_line_log.addHandler(_line_handler)
 
 _error_log = logging.getLogger('ftpmaster_error')
 _error_log.setLevel(logging.WARNING)
-_error_log.addHandler(logging.handlers.TimedRotatingFileHandler(os.path.join(LOG_DIR, 'ftp_error.log'), when='d', interval=7, backupCount=52))
+_error_handler = logging.handlers.TimedRotatingFileHandler(os.path.join(LOG_DIR, 'ftp_error.log'), when='d', interval=7, backupCount=52)
+_error_handler.setFormatter(_formatter)
+_error_log.addHandler(_error_handler)
 
 def log_normal(msg):
     _normal_log.info(msg)
